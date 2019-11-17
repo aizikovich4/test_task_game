@@ -1,5 +1,26 @@
-import os
+import os, ConfigParser
 from flask import Flask, jsonify, request
+
+def read_config(config_path):
+    server_items = {}
+    try:
+        Config = ConfigParser.ConfigParser()
+        Config.read(config_path)
+        for section in Config.sections():
+            options = Config.options(section)
+            for option in options:
+                try:
+                    server_items[option] = Config.get(section, option)
+                    if server_items[option] == -1:
+                        print("skip: %s" % option)
+                except:
+                    print("exception on %s!" % option)
+                    server_items[option] = None
+        return server_items
+    except:
+        print "Error reading file with items"
+        return {}
+
 
 def create_server(test_config=None):
     # create and configure the app
@@ -8,6 +29,7 @@ def create_server(test_config=None):
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'test_game.sqlite'),
     )
+    server_items = read_config("items.data")
 
     @app.route('/hello')
     def hello():
@@ -18,7 +40,9 @@ def create_server(test_config=None):
         error = None
         user = request.headers.get('username')
         login = user
-        return jsonify(username=login, credit=100)
+        return jsonify(username=login,
+                       credit=100,
+                       items=server_items)
 
     @app.route('/logout', methods=["GET"])
     def logout():

@@ -15,6 +15,7 @@ class Game(object):
     def __init__(self):
         self.game_state = "LOGIN"
         self.is_logged = False
+        self.server_items = {}
     def login_user(self, login):
         answer = requests.get("http://127.0.0.1:5000/login", headers={'username':login})
         print(answer.json())
@@ -24,9 +25,11 @@ class Game(object):
         self.user_items=[]
         self.credit = data['credit']
         self.login = data['username']
+        self.server_items = data['items']
         if not self.login:
             return False
         print("Hello "+self.login+". You have a " + str(self.credit)+" credit.")
+        print( self.server_items)
         return True
 
     def start(self):
@@ -41,7 +44,6 @@ class Game(object):
                 if cmd == "help":
                     print(list_commands)
                 elif cmd == 'logout' or cmd == 'exit':
-                    print(cmd)
                     self.end_game()
                 elif cmd == 'sell':
                     self.sell_item()
@@ -88,7 +90,7 @@ class Game(object):
 
 
     def logout(self):
-        answer = requests.get("http://127.0.0.1:5000/logout", headers={'username': login})
+        answer = requests.get("http://127.0.0.1:5000/logout", headers={'username': self.login})
         pass
 
 def main():
