@@ -10,26 +10,28 @@ def exception_handler(exception_type, exception, traceback):
 #sys.tracebacklimit = 0
 #sys.excepthook = exception_handler /
 
-list_commands=["exit", "buy", "sell", "logout","help"]
+list_commands=["exit", "buy", "sell", "logout", "help"]
 class Game(object):    
     def __init__(self):
         self.game_state = "LOGIN"
         self.is_logged = False
-    def login_user(self,login):
-       
-        answer = requests.post("http://127.0.0.1:5000/login", data = {'username': 'user_login'})
+    def login_user(self, login):
+        answer = requests.get("http://127.0.0.1:5000/login", headers={'username':login})
         print(answer.json())
-        #BORIS add handle json 
-        self.is_logged = True
+        data = answer.json()
         self.game_state = "START"
+        self.is_logged = True
         self.user_items=[]
-        self.money = 500 #BORIS 
-        self.login = login
+        self.credit = data['credit']
+        self.login = data['username']
+        if not self.login:
+            return False
+        print("Hello "+self.login+". You have a " + str(self.credit)+" credit.")
+        return True
 
     def start(self):
         if not self.is_logged:
             return
-        
         while self.game_state != "END_GAME":
             try:
                 cmd = raw_input("Enter command: ")
@@ -49,41 +51,53 @@ class Game(object):
                 self.end_game()
                 
     def end_game(self):
-        print("Goodbye ",self.login)
+        print("Goodbye "+self.login)
         self.logout()
-        self.game_state="END_GAME"
+        self.game_state = "END_GAME"
 
     def buy_item(self):
-        #BORIS request items from server
         items=[]
         print("Items:", items)
         item = raw_input("Enter number of item which you want to buy: ")        
         try:
-            item = int(item)
+            buy_item = int(item)
+            #TODO add checking for including item in server items
             print("Try to buy item", item)
-            #BORIS  send request            
         except ValueError:
-            print("Wrong item number! Please repeat")  
+            print("Wrong item number! ")
+
+        answer = requests.get("http://127.0.0.1:5000/buy",
+                              params={'item': buy_item},
+                              headers={'username': self.login})
     
     def sell_item(self):
-        print("Your items:", self.user_items)
-        item = raw_input("Enter number of item which you want to sell: ")        
+        print("Your items:" + str(self.user_items))
+        item_number = raw_input("Enter number of item which you want to sell: ")
         try:
-            item = int(item)
-            print("Try to sell item", item)
-            #BORIS  send request            
+            item = int(item_number)
         except ValueError:
-            print("Wrong item number! Please repeat")    
+            print("Wrong item number!")
+            return
+        print("Try to sell item", item)
+        answer = requests.get("http://127.0.0.1:5000/sell",
+                                  params={'item': item},
+                                  headers={'username': self.login})
+
+        print(answer)
+
+
 
     def logout(self):
-        #BORIS send logout
+        answer = requests.get("http://127.0.0.1:5000/logout", headers={'username': login})
         pass
 
 def main():
     game = Game()
-    user_login = raw_input("Enter You login: ")
-    game.login_user(user_login)
-    game.start()
+    login = raw_input("Enter You login: ")
+    if game.login_user(login):
+        game.start()
+    else:
+        print("You account was not found")
     
 if __name__ == '__main__':
     main()
