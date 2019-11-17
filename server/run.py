@@ -1,6 +1,6 @@
 import os, ConfigParser
 from flask import Flask, jsonify, request
-
+import db
 def read_config(config_path):
     server_items = {}
     try:
@@ -30,19 +30,22 @@ def create_server(test_config=None):
         DATABASE=os.path.join(app.instance_path, 'test_game.sqlite'),
     )
     server_items = read_config("items.data")
-
-    @app.route('/hello')
-    def hello():
-        return 'Hello, World!'
+    db.init_app(app)
 
     @app.route('/login', methods=["GET"])
     def login():
         error = None
-        user = request.headers.get('username')
-        login = user
-        return jsonify(username=login,
-                       credit=100,
-                       items=server_items)
+        username = request.headers.get('username')
+        users = db.get_db().execute("SELECT login FROM users WHERE login = ?", (username,)).fetchone()
+        if(users is None ):
+            print("user not exist")
+            users = db.get_db().execute("INSERT INTO users(login, credit) VALUES(?,?)", (username, 0))
+        else:
+            print("user exist")
+        return jsonify(#username=users,
+                        username=username,
+                        credit=100,
+                        items=server_items)
 
     @app.route('/logout', methods=["GET"])
     def logout():
@@ -64,6 +67,10 @@ def create_server(test_config=None):
         user = request.headers.get('username')
         print("User "+user+" try to buy "+str(item))
         return jsonify()
+
+    @app.route('/get_items', methods=["GET"])
+    def get_items():
+        return jsonify(items=server_items)
 
     return app
 

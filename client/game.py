@@ -1,16 +1,6 @@
-import sys
-import signal
-import sys
 import requests
 
-def exception_handler(exception_type, exception, traceback):
-    #print "%s: %s" % (exception_type.__name__, exception)
-    exit()
-#BORIS UNCOMMENT IN RELEASE
-#sys.tracebacklimit = 0
-#sys.excepthook = exception_handler /
-
-list_commands=["exit", "buy", "sell", "logout", "help"]
+list_commands=["exit", "buy", "sell", "logout", "items", "help"]
 class Game(object):    
     def __init__(self):
         self.game_state = "LOGIN"
@@ -22,14 +12,13 @@ class Game(object):
         data = answer.json()
         self.game_state = "START"
         self.is_logged = True
-        self.user_items=[]
         self.credit = data['credit']
         self.login = data['username']
-        self.server_items = data['items']
+        self.user_items = data['items']
         if not self.login:
             return False
         print("Hello "+self.login+". You have a " + str(self.credit)+" credit.")
-        print( self.server_items)
+        print("You items: " + str(self.user_items))
         return True
 
     def start(self):
@@ -48,7 +37,9 @@ class Game(object):
                 elif cmd == 'sell':
                     self.sell_item()
                 elif cmd == "buy":
-                    self.buy_item()        
+                    self.buy_item()
+                elif cmd == "items":
+                    self.show_items()
             except KeyboardInterrupt:  
                 self.end_game()
                 
@@ -87,11 +78,14 @@ class Game(object):
 
         print(answer)
 
-
-
     def logout(self):
         answer = requests.get("http://127.0.0.1:5000/logout", headers={'username': self.login})
         pass
+    def show_items(self):
+        answer = requests.get("http://127.0.0.1:5000/get_items",
+                              headers={'username': self.login})
+
+        print(answer.json())
 
 def main():
     game = Game()
