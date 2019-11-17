@@ -27,11 +27,11 @@ def close_db(e=None):
     if db is not None:
         db.close()
 
-
 def init_db():
     """Clear existing data and create new tables."""
     db = get_db()
-    db.get_db().execute("CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, login TEXT NOT NULL)").fetchone()
+    with current_app.open_resource("schema.sql") as f:
+        db.executescript(f.read().decode("utf8"))
 
 
 @click.command("init-db")
