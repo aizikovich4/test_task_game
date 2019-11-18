@@ -65,23 +65,31 @@ def create_app(test_config=None):
 
     @app.route('/sell', methods=["GET"])
     def sell():
-        item = str(request.args.get('item'))
-        user = request.headers.get('username')
-        print("User " + user + " try to sell " + str(item))
-        return jsonify()
+        try:
+            item = str(request.args.get('item'))
+            user = request.headers.get('username')
+            print("User " + user + " try to sell " + str(item))
+            return jsonify()
+        except:
+            return jsonify(error="Error sell item")
+
 
     @app.route('/buy', methods=["GET"])
     def buy():
-        error = None
-        item = str(request.args.get('item'))
-        user = request.headers.get('username')
-        print("User "+user+" try to buy "+str(item))
-        return jsonify()
+        try:
+            item = str(request.args.get('item'))
+            user = request.headers.get('username')
+            print("User "+user+" try to buy "+str(item))
+            return jsonify()
+        except:
+            return jsonify(error="Error sell item")
 
     @app.route('/get_items', methods=["GET"])
     def get_items():
-        return jsonify(items=server_items)
-
+        try:
+            return jsonify(items=server_items)
+        except:
+            return jsonify(error="Error sell item")
 
     db.init_app(app)
 
