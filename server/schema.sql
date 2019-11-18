@@ -23,3 +23,12 @@ INSERT INTO items(name, price) VALUES('ship2',444);
 INSERT INTO items(name, price) VALUES('ship3',555);
 INSERT INTO items(name, price) VALUES('weapon1',666);
 INSERT INTO items(name, price) VALUES('weapon2',77);
+
+
+
+CREATE TABLE user_items ( 
+	user_id INTEGER, 
+	item_id INTEGER, 
+	FOREIGN KEY(user_id) REFERENCES users(id_user), 
+	FOREIGN KEY(item_id) REFERENCES items(id_item) 
+);

@@ -95,9 +95,8 @@ def main():
     login = raw_input("Enter You login: ")
     if game.login_user(login):
         game.start()
-    else:
-        print("You account was not found")
-    
+
 if __name__ == '__main__':
-    main()
+    while 1:
+        main()
  

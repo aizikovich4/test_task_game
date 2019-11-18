@@ -1,27 +1,6 @@
 import os, ConfigParser
 from flask import Flask, jsonify, request
 import db
-def read_config(config_path):
-    server_items = {}
-    try:
-        Config = ConfigParser.ConfigParser()
-        Config.read(config_path)
-        for section in Config.sections():
-            options = Config.options(section)
-            for option in options:
-                try:
-                    server_items[option] = Config.get(section, option)
-                    if server_items[option] == -1:
-                        print("skip: %s" % option)
-                except:
-                    print("exception on %s!" % option)
-                    server_items[option] = None
-
-        return server_items
-    except:
-        print "Error reading file with items"
-        return {}
-
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -34,7 +13,6 @@ def create_app(test_config=None):
         os.makedirs(app.instance_path)
     except OSError:
         pass
-    server_items = read_config("items.data")
 
     @app.route('/hello')
     def hello():
@@ -43,6 +21,12 @@ def create_app(test_config=None):
     @app.route('/login', methods=["GET"])
     def login():
         try:
+            db_items = db.get_db().execute("SELECT name, price FROM items").fetchall()
+            server_items = []
+            for it in db_items:
+                print(list(zip(it.keys(), it)) )
+                server_items.append(list(zip(it.keys(), it)))
+
             username = request.headers.get('username')
             users = db.get_db().execute("SELECT login,credit FROM users WHERE login = ?", (username,)).fetchone()
             if users is None:
