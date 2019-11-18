@@ -1,5 +1,7 @@
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS items;
+DROP TABLE IF EXISTS user_items;
+
 
 CREATE TABLE IF NOT EXISTS users(
 	id_user INTEGER PRIMARY KEY, 
@@ -26,9 +28,15 @@ INSERT INTO items(name, price) VALUES('weapon2',77);
 
 
 
-CREATE TABLE user_items ( 
+CREATE TABLE IF NOT EXISTS user_items ( 
 	user_id INTEGER, 
 	item_id INTEGER, 
 	FOREIGN KEY(user_id) REFERENCES users(id_user), 
 	FOREIGN KEY(item_id) REFERENCES items(id_item) 
 );
+
+INSERT INTO user_items(user_id, item_id) VALUES(1,1);
+INSERT INTO user_items(user_id, item_id) VALUES(1,2);
+INSERT INTO user_items(user_id, item_id) VALUES(1,4);
+INSERT INTO user_items(user_id, item_id) VALUES(2,2);
+INSERT INTO user_items(user_id, item_id) VALUES(2,3);

@@ -1,6 +1,6 @@
 import requests
 
-list_commands=["exit", "buy", "sell", "logout", "items", "help"]
+list_commands=["exit", "buy", "sell", "logout", "server items", "help", "my items"]
 class Game(object):    
     def __init__(self):
         self.game_state = "LOGIN"
@@ -8,7 +8,6 @@ class Game(object):
         self.server_items = {}
     def login_user(self, login):
         answer = requests.get("http://127.0.0.1:5000/login", headers={'username':login})
-        print(answer.json())
         data = answer.json()
         if 'error' in data:
             print(data['error'])
@@ -41,8 +40,10 @@ class Game(object):
                     self.sell_item()
                 elif cmd == "buy":
                     self.buy_item()
-                elif cmd == "items":
+                elif cmd == "server items":
                     self.show_items()
+                elif cmd == "my items":
+                    self.show_my_items()
             except KeyboardInterrupt:  
                 self.end_game()
                 
@@ -53,8 +54,7 @@ class Game(object):
 
     def buy_item(self):
         items=[]
-        print("Items:", items)
-        item = raw_input("Enter number of item which you want to buy: ")        
+        item = raw_input("Enter number of item which you want to buy: ")
         try:
             buy_item = int(item)
             #TODO add checking for including item in server items
@@ -87,8 +87,16 @@ class Game(object):
     def show_items(self):
         answer = requests.get("http://127.0.0.1:5000/get_items",
                               headers={'username': self.login})
+        data = answer.json()['items']
+        self.server_items = data
+        print ("Name      price")
+        index=0
+        for item in data:
+            print(str(index)+". "+str(item[0][1]) + "    "+ str(item[1][1]))
+            index+=1
 
-        print(answer.json())
+    def show_my_items(self):
+        print(self.user_items)
 
 def main():
     game = Game()

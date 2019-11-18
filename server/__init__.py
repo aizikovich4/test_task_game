@@ -21,22 +21,12 @@ def create_app(test_config=None):
     @app.route('/login', methods=["GET"])
     def login():
         try:
-            db_items = db.get_db().execute("SELECT name, price FROM items").fetchall()
-            server_items = []
-            for it in db_items:
-                print(list(zip(it.keys(), it)) )
-                server_items.append(list(zip(it.keys(), it)))
-
             username = request.headers.get('username')
-            users = db.get_db().execute("SELECT login,credit FROM users WHERE login = ?", (username,)).fetchone()
-            if users is None:
-                users = db.get_db().execute("INSERT INTO users(login, credit) VALUES(?,?)", (username, 0))
-                db.get_db().commit()
-            else:
-                db.get_db().execute("UPDATE users SET credit = ? WHERE login=?;", (int(users['credit'])+100, users['login']))
-                db.get_db().commit()
+
+            server_items = db.get_user_items(username)
+            user = db.get_user(username)
             return jsonify( username=username,
-                            credit=users['credit'],
+                            credit=user['credit'],
                             items=server_items)
         except:
             return jsonify(error="Error authorisation")
@@ -71,9 +61,10 @@ def create_app(test_config=None):
     @app.route('/get_items', methods=["GET"])
     def get_items():
         try:
+            server_items = db.get_items()
             return jsonify(items=server_items)
         except:
-            return jsonify(error="Error sell item")
+            return jsonify(error="Error get item")
 
     db.init_app(app)
 
