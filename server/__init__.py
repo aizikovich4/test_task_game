@@ -44,16 +44,14 @@ def create_app(test_config=None):
         error = None
         username = request.headers.get('username')
         users = db.get_db().execute("SELECT login,credit FROM users WHERE login = ?", (username,)).fetchone()
-        if(users is None ):
-            print("user not exist")
+        if users is None:
             users = db.get_db().execute("INSERT INTO users(login, credit) VALUES(?,?)", (username, 0))
             db.get_db().commit()
         else:
-            print("user exist")
-            db.get_db().execute("UPDATE users SET credit = ? WHERE login=?;",(int(users['credit'])+100,users['login']))
+            db.get_db().execute("UPDATE users SET credit = ? WHERE login=?;", (int(users['credit'])+100, users['login']))
             db.get_db().commit()
         return jsonify( username=username,
-                        credit=100,
+                        credit=users['credit'],
                         items=server_items)
 
     @app.route('/logout', methods=["GET"])
