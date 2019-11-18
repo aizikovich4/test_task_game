@@ -29,6 +29,7 @@ INSERT INTO items(name, price) VALUES('weapon2',77);
 
 
 CREATE TABLE IF NOT EXISTS user_items ( 
+	id INTEGER PRIMARY KEY, 
 	user_id INTEGER, 
 	item_id INTEGER, 
 	FOREIGN KEY(user_id) REFERENCES users(id_user), 

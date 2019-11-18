@@ -41,27 +41,38 @@ def create_app(test_config=None):
     def sell():
         try:
             item = str(request.args.get('item'))
-            user = request.headers.get('username')
-            print("User " + user + " try to sell " + str(item))
-            return jsonify()
+            username = request.headers.get('username')
+            print("User " + username + " try to sell " + str(item))
+            err = db.sell_item(username, item)
+
+            if err is not None:
+                return jsonify(error=err)
+
+            server_items = db.get_user_items(username)
+            user = db.get_user(username)
+            return jsonify(credit=user['credit'],
+                           items=server_items)
         except:
             return jsonify(error="Error sell item")
 
 
     @app.route('/buy', methods=["GET"])
     def buy():
-        # try:
+        try:
             item = str(request.args.get('item'))
-            user = str(request.headers.get('username'))
-            print("User " + user + " try to buy "+str(item))
-            err = db.buy_item(user, item)
-            print(err)
+            username = str(request.headers.get('username'))
+            print("User " + username + " try to buy "+str(item))
+            err = db.buy_item(username, item)
+
             if err is not None:
-                print ("!!!!!!!!")
                 return jsonify(error=err)
-            return jsonify()
-        # except:
-        #     return jsonify(error="Error buy item")
+
+            server_items = db.get_user_items(username)
+            user = db.get_user(username)
+            return jsonify(credit=user['credit'],
+                            items=server_items)
+        except:
+             return jsonify(error="Error buy item")
 
     @app.route('/get_items', methods=["GET"])
     def get_items():

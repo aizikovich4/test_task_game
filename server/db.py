@@ -64,12 +64,10 @@ def buy_item(user, item):
     try:
         item_db = get_db().execute("SELECT id_item, price FROM items WHERE name = ?", (item,)).fetchone()
         if item_db is None:
-            raise ("non existing item")
+            return "non existing item"
         user_db = get_db().execute("SELECT id_user, credit FROM users WHERE login = ?", (user,)).fetchone()
         if user_db is None:
             return "Non existing user"
-        print (int(item_db['price']))
-        print (int(user_db['credit']))
         if int(item_db['price']) > int(user_db['credit']):
             return "Not enough money"
         else:
@@ -80,6 +78,24 @@ def buy_item(user, item):
             return
     except:
         return "Error buying"
+
+def sell_item(user, item):
+    try:
+        item_db = get_db().execute("SELECT id_item, price FROM items WHERE name = ?", (item,)).fetchone()
+        if item_db is None:
+            return "non existing item"
+        user_db = get_db().execute("SELECT id_user, credit FROM users WHERE login = ?", (user,)).fetchone()
+        if user_db is None:
+            return "Non existing user"
+        rec= get_db().execute("SELECT id  FROM user_items WHERE user_id = ? AND item_id = ?", (user_db['id_user'], item_db['id_item'],)).fetchone()
+        new_Credit = user_db['credit'] + item_db['price']
+        get_db().execute("DELETE FROM  user_items WHERE id=? ", (rec['id'],)).fetchone()
+        set_credit_for_user(user, new_Credit)
+        get_db().commit()
+        return
+    except:
+        return "Error selling"
+
 
 def set_credit_for_user(user, credit):
     get_db().execute("UPDATE users SET credit = ? WHERE login=?;", (credit, user))

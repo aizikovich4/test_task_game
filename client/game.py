@@ -73,21 +73,33 @@ class Game(object):
             print(str(data['error']))
         else:
             print ("Congratulation! You buy " + str(self.server_items[buy_item][0][1]))
+            self.credit = data['credit']
+            self.user_items = data['items']
     
     def sell_item(self):
-        print("Your items:" + str(self.user_items))
+        self.show_my_items()
         item_number = raw_input("Enter number of item which you want to sell: ")
         try:
-            item = int(item_number)
+            sell_item = int(item_number)
+            if sell_item > len(self.user_items):
+                print("Error number!")
+                return
         except ValueError:
             print("Wrong item number!")
             return
-        print("Try to sell item", item)
+        item_sell = self.user_items[sell_item][0]
+        print("Try to sell: " + str(item_sell))
         answer = requests.get("http://127.0.0.1:5000/sell",
-                                  params={'item': item},
+                                  params={'item': item_sell},
                                   headers={'username': self.login})
+        data = answer.json()
+        if 'error' in data:
+            print(str(data['error']))
+        else:
+            print ("Congratulation! You sell " + str(item_sell))
+        self.credit = data['credit']
+        self.user_items = data['items']
 
-        print(answer)
 
     def logout(self):
         answer = requests.get("http://127.0.0.1:5000/logout", headers={'username': self.login})
@@ -105,9 +117,9 @@ class Game(object):
 
     def show_my_items(self):
         index = 0
-        print ("Name      price")
+        print ("    Name      price")
         for item in self.user_items:
-            print(str(index)+". "+str(item[0]) + "   "+str(item[1]))
+            print(" "+str(index)+". "+str(item[0]) + "   "+str(item[1]))
             index+=1
         print ("You have a " + str(self.credit)+" credit.")
 
