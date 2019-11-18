@@ -26,7 +26,7 @@ def create_app(test_config=None):
             server_items = db.get_user_items(username)
             user = db.get_user(username)
             return jsonify( username=username,
-                            credit=user['credit'],
+                            credit=user['credit']+100,
                             items=server_items)
         except:
             return jsonify(error="Error authorisation")
@@ -50,13 +50,18 @@ def create_app(test_config=None):
 
     @app.route('/buy', methods=["GET"])
     def buy():
-        try:
+        # try:
             item = str(request.args.get('item'))
-            user = request.headers.get('username')
-            print("User "+user+" try to buy "+str(item))
+            user = str(request.headers.get('username'))
+            print("User " + user + " try to buy "+str(item))
+            err = db.buy_item(user, item)
+            print(err)
+            if err is not None:
+                print ("!!!!!!!!")
+                return jsonify(error=err)
             return jsonify()
-        except:
-            return jsonify(error="Error sell item")
+        # except:
+        #     return jsonify(error="Error buy item")
 
     @app.route('/get_items', methods=["GET"])
     def get_items():

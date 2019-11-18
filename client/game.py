@@ -19,8 +19,9 @@ class Game(object):
         self.user_items = data['items']
         if not self.login:
             return False
-        print("Hello "+self.login+". You have a " + str(self.credit)+" credit.")
-        print("You items: " + str(self.user_items))
+        print("Hello "+self.login)
+        print("You items: ")
+        self.show_my_items()
         return True
 
     def start(self):
@@ -41,7 +42,7 @@ class Game(object):
                 elif cmd == "buy":
                     self.buy_item()
                 elif cmd == "server items":
-                    self.show_items()
+                    self.show_server_items()
                 elif cmd == "my items":
                     self.show_my_items()
             except KeyboardInterrupt:  
@@ -53,18 +54,25 @@ class Game(object):
         self.game_state = "END_GAME"
 
     def buy_item(self):
-        items=[]
+        self.show_server_items()
         item = raw_input("Enter number of item which you want to buy: ")
         try:
             buy_item = int(item)
-            #TODO add checking for including item in server items
-            print("Try to buy item", item)
+            if buy_item >= len(self.server_items):
+                print("Error number!")
+                return
         except ValueError:
             print("Wrong item number! ")
 
+        print("Try to buy: " + str(self.server_items[buy_item][0][1]))
         answer = requests.get("http://127.0.0.1:5000/buy",
-                              params={'item': buy_item},
+                              params={'item': self.server_items[buy_item][0][1]},
                               headers={'username': self.login})
+        data = answer.json()
+        if 'error' in data:
+            print(str(data['error']))
+        else:
+            print ("Congratulation! You buy " + str(self.server_items[buy_item][0][1]))
     
     def sell_item(self):
         print("Your items:" + str(self.user_items))
@@ -84,7 +92,7 @@ class Game(object):
     def logout(self):
         answer = requests.get("http://127.0.0.1:5000/logout", headers={'username': self.login})
         pass
-    def show_items(self):
+    def show_server_items(self):
         answer = requests.get("http://127.0.0.1:5000/get_items",
                               headers={'username': self.login})
         data = answer.json()['items']
@@ -96,7 +104,12 @@ class Game(object):
             index+=1
 
     def show_my_items(self):
-        print(self.user_items)
+        index = 0
+        print ("Name      price")
+        for item in self.user_items:
+            print(str(index)+". "+str(item[0]) + "   "+str(item[1]))
+            index+=1
+        print ("You have a " + str(self.credit)+" credit.")
 
 def main():
     game = Game()
@@ -107,4 +120,4 @@ def main():
 if __name__ == '__main__':
     while 1:
         main()
- 
+

@@ -43,12 +43,11 @@ def get_user(username):
         if user is None:
             user = create_new_user(username)
         else:
-            get_db().execute("UPDATE users SET credit = ? WHERE login=?;",
-                                (int(user['credit']) + 100, user['login']))
+            set_credit_for_user(user['login'], int(user['credit']) + 100)
             get_db().commit()
         return user
     except:
-        print("Get get_user")
+        print("Error get_user")
         return
 
 
@@ -60,6 +59,32 @@ def create_new_user(username):
     except:
         print("Get create_new_user")
         return []
+
+def buy_item(user, item):
+    try:
+        item_db = get_db().execute("SELECT id_item, price FROM items WHERE name = ?", (item,)).fetchone()
+        if item_db is None:
+            raise ("non existing item")
+        user_db = get_db().execute("SELECT id_user, credit FROM users WHERE login = ?", (user,)).fetchone()
+        if user_db is None:
+            return "Non existing user"
+        print (int(item_db['price']))
+        print (int(user_db['credit']))
+        if int(item_db['price']) > int(user_db['credit']):
+            return "Not enough money"
+        else:
+            new_Credit = user_db['credit'] -  item_db['price']
+            get_db().execute("INSERT INTO  user_items(user_id, item_id) VALUES(?,?);", (user_db['id_user'], item_db['id_item'],)).fetchone()
+            set_credit_for_user(user, new_Credit)
+            get_db().commit()
+            return
+    except:
+        return "Error buying"
+
+def set_credit_for_user(user, credit):
+    get_db().execute("UPDATE users SET credit = ? WHERE login=?;", (credit, user))
+
+
 
 def get_db():
     """Connect to the application's configured database. The connection
