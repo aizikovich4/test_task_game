@@ -10,6 +10,9 @@ class Game(object):
         answer = requests.get("http://127.0.0.1:5000/login", headers={'username':login})
         print(answer.json())
         data = answer.json()
+        if 'error' in data:
+            print(data['error'])
+            return False
         self.game_state = "START"
         self.is_logged = True
         self.credit = data['credit']

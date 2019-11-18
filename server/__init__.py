@@ -16,6 +16,7 @@ def read_config(config_path):
                 except:
                     print("exception on %s!" % option)
                     server_items[option] = None
+
         return server_items
     except:
         print "Error reading file with items"
@@ -41,18 +42,20 @@ def create_app(test_config=None):
 
     @app.route('/login', methods=["GET"])
     def login():
-        error = None
-        username = request.headers.get('username')
-        users = db.get_db().execute("SELECT login,credit FROM users WHERE login = ?", (username,)).fetchone()
-        if users is None:
-            users = db.get_db().execute("INSERT INTO users(login, credit) VALUES(?,?)", (username, 0))
-            db.get_db().commit()
-        else:
-            db.get_db().execute("UPDATE users SET credit = ? WHERE login=?;", (int(users['credit'])+100, users['login']))
-            db.get_db().commit()
-        return jsonify( username=username,
-                        credit=users['credit'],
-                        items=server_items)
+        try:
+            username = request.headers.get('username')
+            users = db.get_db().execute("SELECT login,credit FROM users WHERE login = ?", (username,)).fetchone()
+            if users is None:
+                users = db.get_db().execute("INSERT INTO users(login, credit) VALUES(?,?)", (username, 0))
+                db.get_db().commit()
+            else:
+                db.get_db().execute("UPDATE users SET credit = ? WHERE login=?;", (int(users['credit'])+100, users['login']))
+                db.get_db().commit()
+            return jsonify( username=username,
+                            credit=users['credit'],
+                            items=server_items)
+        except:
+            return jsonify(error="Error authorisation")
 
     @app.route('/logout', methods=["GET"])
     def logout():
