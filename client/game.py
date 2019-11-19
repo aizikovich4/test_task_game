@@ -1,4 +1,7 @@
 import requests
+import signal
+import time
+import sys
 
 list_commands=["exit", "buy", "sell", "logout", "server items", "help", "my items"]
 class Game(object):    
@@ -6,6 +9,7 @@ class Game(object):
         self.game_state = "LOGIN"
         self.is_logged = False
         self.server_items = {}
+
     def login_user(self, login):
         answer = requests.get("http://127.0.0.1:5000/login", headers={'username':login})
         data = answer.json()
@@ -63,6 +67,7 @@ class Game(object):
                 return
         except ValueError:
             print("Wrong item number! ")
+            return
 
         print("Try to buy: " + str(self.server_items[buy_item][0][1]))
         answer = requests.get("http://127.0.0.1:5000/buy",
@@ -100,17 +105,18 @@ class Game(object):
         self.credit = data['credit']
         self.user_items = data['items']
 
-
     def logout(self):
         answer = requests.get("http://127.0.0.1:5000/logout", headers={'username': self.login})
+        self.is_logged = False
         pass
+
     def show_server_items(self):
         answer = requests.get("http://127.0.0.1:5000/get_items",
                               headers={'username': self.login})
         data = answer.json()['items']
         self.server_items = data
         print ("Name      price")
-        index=0
+        index = 0
         for item in data:
             print(str(index)+". "+str(item[0][1]) + "    "+ str(item[1][1]))
             index+=1
@@ -120,8 +126,23 @@ class Game(object):
         print ("    Name      price")
         for item in self.user_items:
             print(" "+str(index)+". "+str(item[0]) + "   "+str(item[1]))
-            index+=1
+            index += 1
         print ("You have a " + str(self.credit)+" credit.")
+
+def exit_gracefully(signum, frame):
+    # restore the original signal handler as otherwise evil things will happen
+    # in raw_input when CTRL+C is pressed, and our signal handler is not re-entrant
+    signal.signal(signal.SIGINT, original_sigint)
+
+    try:
+        if raw_input("\nReally quit? (y/n)> ").lower().startswith('y'):
+            sys.exit(1)
+    except KeyboardInterrupt:
+        print("Ok, quitting")
+        sys.exit(1)
+
+    # restore the exit gracefully handler here
+    signal.signal(signal.SIGINT, exit_gracefully)
 
 def main():
     game = Game()
@@ -129,7 +150,10 @@ def main():
     if game.login_user(login):
         game.start()
 
+
 if __name__ == '__main__':
+    original_sigint = signal.getsignal(signal.SIGINT)
+    signal.signal(signal.SIGINT, exit_gracefully)
     while 1:
         main()
 
