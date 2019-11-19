@@ -24,6 +24,7 @@ class Game(object):
         if not self.login:
             return False
         print("Hello "+self.login)
+        print ("You receive "+str(data['message_credit']) + " credit")
         print("You items: ")
         self.show_my_items()
         return True
@@ -56,6 +57,7 @@ class Game(object):
         print("Goodbye "+self.login)
         self.logout()
         self.game_state = "END_GAME"
+        sys.exit(1)
 
     def buy_item(self):
         self.show_server_items()

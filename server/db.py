@@ -37,14 +37,15 @@ def get_user_items(username):
         print ("Error get_user_items")
         return []
 
-def get_user(username):
+def get_user(username, credit=0):
     try:
         user = get_db().execute("SELECT login,credit FROM users WHERE login = ?", (username,)).fetchone()
         if user is None:
             user = create_new_user(username)
         else:
-            set_credit_for_user(user['login'], int(user['credit']) + 100)
-            get_db().commit()
+            if credit is not None:
+                set_credit_for_user(user['login'], int(user['credit']) + credit)
+                get_db().commit()
         return user
     except:
         print("Error get_user")

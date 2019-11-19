@@ -1,6 +1,25 @@
-import os, ConfigParser
+import os, ConfigParser, random
 from flask import Flask, jsonify, request
 import db
+def read_config(config_path):
+    server_items = {}
+    try:
+        Config = ConfigParser.ConfigParser()
+        Config.read(config_path)
+        for section in Config.sections():
+            options = Config.options(section)
+            for option in options:
+                try:
+                    server_items[option] = Config.get(section, option)
+                    if server_items[option] == -1:
+                        print("skip: %s" % option)
+                except:
+                    print("exception on %s!" % option)
+                    server_items[option] = None
+        return server_items
+    except:
+        print "Error reading file with items"
+        return {}
 
 
 def create_app(test_config=None):
@@ -15,20 +34,19 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    @app.route('/hello')
-    def hello():
-        return 'Hello, World!'
+    game_config = read_config("config.txt")
 
     @app.route('/login', methods=["GET"])
     def login():
         try:
             username = request.headers.get('username')
-
+            random_credit_bonus = random.randint(1, int(game_config['limit_random_credit']))
+            user = db.get_user(username, random_credit_bonus)
             server_items = db.get_user_items(username)
-            user = db.get_user(username)
             return jsonify( username=username,
-                            credit=user['credit']+100,
-                            items=server_items)
+                            credit=user['credit']+random_credit_bonus,
+                            items=server_items,
+                            message_credit=random_credit_bonus)
         except:
             return jsonify(error="Error authorisation")
 
