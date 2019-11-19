@@ -1,0 +1,2 @@
+[game param]
+limit_random_credit=200
